@@ -7,6 +7,8 @@
  [1] Y. Koizumi, et al., “ToyADMOS: A Dataset of Miniature-Machine Operating Sounds for Anomalous Sound Detection,” in Proc. of WASPAA 2019.
 """
 import numpy as np
+import sys
+import types
 # Monkey-patch np.sctypes for NumPy 2.0+ compatibility (required by chainer)
 if not hasattr(np, 'sctypes'):
     np.sctypes = {
@@ -16,6 +18,18 @@ if not hasattr(np, 'sctypes'):
         'complex': [np.complex64, np.complex128],
         'others':  [bool, object, bytes, str, np.void],
     }
+# Stub numpy.distutils for NumPy 2.0+ (removed in 2.0, but scipy may still import it)
+if 'numpy.distutils' not in sys.modules:
+    sys.modules['numpy.distutils'] = types.ModuleType('numpy.distutils')
+    for _sub in ('misc_util', 'log', 'exec_command', 'core', 'ccompiler',
+                  'fcompiler', 'system_info', 'cpuinfo', 'line_endings',
+                  'npy_pkg_config', 'pathccompiler', 'unixccompiler',
+                  'msvc9compiler', 'mingw32ccompiler', 'intelccompiler',
+                  'conv_template', 'from_template', 'extension',
+                  'command', 'armccompiler'):
+        _full = f'numpy.distutils.{_sub}'
+        if _full not in sys.modules:
+            sys.modules[_full] = types.ModuleType(_full)
 #########################################################################
 import chainer
 from chainer import cuda, optimizers, serializers

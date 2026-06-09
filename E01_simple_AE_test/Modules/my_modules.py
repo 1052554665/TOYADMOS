@@ -1,5 +1,28 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import sys
+import types
+# Monkey-patch np.sctypes for NumPy 2.0+ compatibility (required by chainer)
+if not hasattr(np, 'sctypes'):
+    np.sctypes = {
+        'float':   [np.float16, np.float32, np.float64],
+        'int':     [np.int8, np.int16, np.int32, np.int64],
+        'uint':    [np.uint8, np.uint16, np.uint32, np.uint64],
+        'complex': [np.complex64, np.complex128],
+        'others':  [bool, object, bytes, str, np.void],
+    }
+# Stub numpy.distutils for NumPy 2.0+ (removed in 2.0, but scipy may still import it)
+if 'numpy.distutils' not in sys.modules:
+    sys.modules['numpy.distutils'] = types.ModuleType('numpy.distutils')
+    for _sub in ('misc_util', 'log', 'exec_command', 'core', 'ccompiler',
+                  'fcompiler', 'system_info', 'cpuinfo', 'line_endings',
+                  'npy_pkg_config', 'pathccompiler', 'unixccompiler',
+                  'msvc9compiler', 'mingw32ccompiler', 'intelccompiler',
+                  'conv_template', 'from_template', 'extension',
+                  'command', 'armccompiler'):
+        _full = f'numpy.distutils.{_sub}'
+        if _full not in sys.modules:
+            sys.modules[_full] = types.ModuleType(_full)
 import scipy as scipy
 from scipy.io import wavfile
 import glob 

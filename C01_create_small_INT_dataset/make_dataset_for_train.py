@@ -21,7 +21,7 @@ np.random.seed(0)
 
 # Parameters
 dataset_base      = "/home/yangchen/ToyADMOS/ToyConveror" # Please set ToyADMOS directory in your environment
-subdataset        = "ToyConveyor"       # "ToyCar" or "ToyConveyor"
+subdataset        = "ToyTrain"       # "ToyCar" or "ToyConveyor" or "ToyTrain"
 case_num          = "case1"
 ch_num            = ["ch1", "ch2", "ch3", "ch4"]
 target_fs         = 16000
@@ -71,7 +71,7 @@ def wav_read_all(wav_dir, target_fs):
             fn             = wav_file_set[jj][ii]
             signal, org_fs = wavread( fn )
             signals.append( signal )
-        signal *= 0
+        signal = signals[0] * 0
         for jj in range( len(ch_num) ):
             signal += signals[jj]
         if(org_fs != target_fs):
@@ -86,7 +86,7 @@ def load_and_cut_noise(N_all, ls):
     n    = N_all[n_id]
     if(len(n) > len(s)):
         ln = len(n)
-        st = int( (ln-ls-1)*np.random.rand(1) )
+        st = np.random.randint(0, ln - ls)
         n  = n[st:st+ls]
     return n
     

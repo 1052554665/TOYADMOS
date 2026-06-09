@@ -8,6 +8,8 @@
 """
 ##################################################################################
 import numpy as np
+import sys
+import types
 # Monkey-patch np.sctypes for NumPy 2.0+ compatibility (required by chainer)
 if not hasattr(np, 'sctypes'):
     np.sctypes = {
@@ -16,7 +18,19 @@ if not hasattr(np, 'sctypes'):
         'uint':    [np.uint8, np.uint16, np.uint32, np.uint64],
         'complex': [np.complex64, np.complex128],
         'others':  [bool, object, bytes, str, np.void],
-    }  
+    }
+# Stub numpy.distutils for NumPy 2.0+ (removed in 2.0, but scipy may still import it)
+if 'numpy.distutils' not in sys.modules:
+    sys.modules['numpy.distutils'] = types.ModuleType('numpy.distutils')
+    for _sub in ('misc_util', 'log', 'exec_command', 'core', 'ccompiler',
+                  'fcompiler', 'system_info', 'cpuinfo', 'line_endings',
+                  'npy_pkg_config', 'pathccompiler', 'unixccompiler',
+                  'msvc9compiler', 'mingw32ccompiler', 'intelccompiler',
+                  'conv_template', 'from_template', 'extension',
+                  'command', 'armccompiler'):
+        _full = f'numpy.distutils.{_sub}'
+        if _full not in sys.modules:
+            sys.modules[_full] = types.ModuleType(_full)  
 import collections
 from matplotlib import pylab as plt # for debug
 #########################################################################
@@ -47,9 +61,9 @@ DEVICE_INFO = cuda.get_device_from_id( DEVICE_NUM )
 # load parameters
 sp_param, dnn_param, training_param = Config.load_config()
 # Dev set of normal sounds
-toy_type = 'ToyCar'
+# toy_type = 'ToyCar'
 toy_type = 'ToyConveyor'
-toy_type = 'ToyTrain'
+# toy_type = 'ToyTrain'
 obs_dir  = './exp1_dataset_'+toy_type+'/train_normal/'
 # save dir
 dnn_dir  = './dnn_dir/'                  
@@ -128,16 +142,16 @@ with cuda.Device( DEVICE_INFO ):
                 score      = cuda.to_cpu( score.data )
                 svfn       = sav_dir+'nml_'+fn_nml[jj]+'.csv'
                 np.savetxt(svfn, score, delimiter=",")
-            MN[jj]     = np.max( score )
-        print('Evaluating anomalous files...')
-        for jj in tqdm( range( len(A_set) ) ):
-            # anomaly
-            x          = A_set[ jj ]
-            score      = evaluate_wav( x ) 
-            score      = cuda.to_cpu( score.data )
-            svfn       = sav_dir+'anm_'+fn_anm[jj]+'.csv'
-            np.savetxt(svfn, score, delimiter=",")
-            MA[jj]     = np.max( score )
+                MN[jj]     = np.max( score )
+            print('Evaluating anomalous files...')
+            for jj in tqdm( range( len(A_set) ) ):
+                # anomaly
+                x          = A_set[ jj ]
+                score      = evaluate_wav( x ) 
+                score      = cuda.to_cpu( score.data )
+                svfn       = sav_dir+'anm_'+fn_anm[jj]+'.csv'
+                np.savetxt(svfn, score, delimiter=",")
+                MA[jj]     = np.max( score )
                 
                 
                 

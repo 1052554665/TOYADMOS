@@ -77,7 +77,7 @@ def load_and_cut_noise(N_all, ls):
     n    = N_all[n_id]
     if(len(n) > len(s)):
         ln = len(n)
-        st = int( (ln-ls-1)*np.random.rand(1) )
+        st = np.random.randint(0, ln - ls)
         n  = n[st:st+ls]
     return n
     
