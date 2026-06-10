@@ -3,3 +3,5 @@ exp1_dataset_ToyConveyor/
 __pycache__/
 results_ToyConveyor.h5/
 *.csv
+*.gz
+*.h5
