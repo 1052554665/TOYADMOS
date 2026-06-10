@@ -72,7 +72,7 @@ model_fn = toy_type+".h5"
 # analysis condition
 rho = 0.1 # FPR = 10%
 # anomaly list
-anomaly_cond_xlsx_dir = './anomaly_conditions/'
+anomaly_cond_xlsx_dir = '../anomaly_conditions/'
 xlsx_fn               = anomaly_cond_xlsx_dir+toy_type+'_anomay_condition.xlsx'            
 anm_cnd               = pd.read_excel( xlsx_fn )
 # report file name
@@ -198,7 +198,7 @@ with open(report_file, mode='w') as f:
         f.write('-------------------------------------\n')
         idx = int(kk[2:])-1
         for ii, cc in enumerate(anm_cnd.columns):
-            f.write(cc+': '+anm_cnd.iloc[idx][ii]+'\n')
+            f.write(cc+': '+str(anm_cnd.iloc[idx, ii])+'\n')
         f.write( 'Overlooked times: '+str(c[kk])+'\n' )
     f.write('-------------------------------------\n')
 ###############################################################################

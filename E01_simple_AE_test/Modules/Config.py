@@ -22,7 +22,7 @@ def load_config():
     training_param = {
     "set_size"          : 100,          # num of samples per one set
     "Backprop_per_file" : 2,            # num of samples per 1 backpropagation
-    "MAX_EPOCH"         : 200,   
+    "MAX_EPOCH"         : 20,   
     "lr_base"           : 10**(-4),     # initial learning rate
     "lr_decal_start"    : 100,          # learning rate decrease epoch
     "lr_decay_factor"   : 100,          # final learning rate = 1/lr_decay_factor
