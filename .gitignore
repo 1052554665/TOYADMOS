@@ -1,8 +1,6 @@
 exp1_dataset_ToyConveyor/
-*.wav
 __pycache__/
-results_ToyConveyor.h5/
-*.csv
 *.gz
 *.h5
 *.pth
+*.wav.csv
