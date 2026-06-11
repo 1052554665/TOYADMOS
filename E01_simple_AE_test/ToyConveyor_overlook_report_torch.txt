@@ -1,0 +1,23 @@
+Overlooked files under FPR = 10% condition:
+-------------------------------------
+Name: ab94
+Tension puly: Aging
+Tail pulley: Normal
+Belt: Removed
+Voltage: Attached metallic object 2
+Overlooked times: 2
+-------------------------------------
+Name: ab97
+Tension puly: Aging
+Tail pulley: Normal
+Belt: Removed
+Voltage: Attached metallic object 3
+Overlooked times: 5
+-------------------------------------
+Name: ab70
+Tension puly: Excessive tension
+Tail pulley: Removed
+Belt: Attached metallic object 3
+Voltage: Under voltage
+Overlooked times: 4
+-------------------------------------
