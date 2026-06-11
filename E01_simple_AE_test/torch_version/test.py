@@ -52,8 +52,10 @@ dataset_dir = os.path.join(_parent_dir, f'exp1_dataset_{toy_type}')
 nml_dir = os.path.join(dataset_dir, 'test_normal')
 anm_dir = os.path.join(dataset_dir, 'test_anomaly')
 
-# Results
-sav_dir = os.path.join(_parent_dir, f'results_{model_fn}')
+# Results — saved under a timestamped subfolder within E01_simple_AE_test/
+from datetime import datetime
+_run_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+sav_dir = os.path.join(_parent_dir, 'test_results', f'{toy_type}_{_run_timestamp}')
 os.makedirs(sav_dir, exist_ok=True)
 
 # Analysis parameters
@@ -65,8 +67,8 @@ anomaly_cond_xlsx_dir = os.path.join(_repo_root, 'anomaly_conditions')
 xlsx_fn = os.path.join(anomaly_cond_xlsx_dir, f'{toy_type}_anomay_condition.xlsx')
 anm_cnd = pd.read_excel(xlsx_fn)
 
-# Report file
-report_file = os.path.join(_parent_dir, f'{toy_type}_overlook_report_torch.txt')
+# Report file (saved alongside other results)
+report_file = os.path.join(sav_dir, f'{toy_type}_overlook_report.txt')
 
 # Device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -169,22 +171,29 @@ TPR = np.zeros_like(MA)
 for jj in range(len(anm_all)):
     TPR[jj] = np.sum(MA > Thres[jj]) / len(anm_all)
 
-plt.figure(figsize=(6, 5))
-plt.plot(np.linspace(0, 1, len(TPR)), TPR, 'b-', linewidth=2)
-plt.plot([rho, rho], [0, 1], 'r--', linewidth=1.5, label=f'FPR = {rho*100:.0f}%')
-plt.xlim([0, 1])
-plt.ylim([0, 1])
-plt.grid(True, alpha=0.3)
-plt.title('ROC Curve (PyTorch AE)')
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.legend()
-plt.tight_layout()
-plt.savefig(os.path.join(sav_dir, 'roc_curve.png'), dpi=150)
-plt.show()
-
 auc = np.mean(TPR)
 print(f'AUC: {auc:.4f}')
+
+# ── Plot and save ROC curve ──────────────────────────────────────────────
+fig, ax = plt.subplots(figsize=(6, 5))
+ax.plot(np.linspace(0, 1, len(TPR)), TPR, 'b-', linewidth=2, label=f'AUC = {auc:.4f}')
+ax.plot([rho, rho], [0, 1], 'r--', linewidth=1.5, label=f'FPR = {rho*100:.0f}%')
+ax.set_xlim([0, 1])
+ax.set_ylim([0, 1])
+ax.grid(True, alpha=0.3)
+ax.set_title(f'ROC Curve — {toy_type} (PyTorch AE)')
+ax.set_xlabel('False Positive Rate')
+ax.set_ylabel('True Positive Rate')
+ax.legend(loc='lower right')
+
+# Save in multiple formats
+roc_pdf_path = os.path.join(sav_dir, 'roc_curve.pdf')
+roc_png_path = os.path.join(sav_dir, 'roc_curve.png')
+fig.savefig(roc_pdf_path, dpi=300, bbox_inches='tight')   # Publication-quality PDF
+fig.savefig(roc_png_path, dpi=150, bbox_inches='tight')   # Quick preview PNG
+plt.show()
+plt.close(fig)
+print(f'ROC curve saved to: {roc_pdf_path}')
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -199,6 +208,55 @@ Prec = TP / (TP + FP)
 Recl = TP / (TP + FN)
 Fmsr = (2 * Recl * Prec) / (Recl + Prec)
 print(f'F-measure under FPR = {rho*100:.0f}% condition: {Fmsr:.4f}')
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Save summary metrics to JSON
+# ══════════════════════════════════════════════════════════════════════════════
+
+import json
+
+summary = {
+    'timestamp':        datetime.now().isoformat(),
+    'toy_type':         toy_type,
+    'checkpoint':       os.path.basename(checkpoint_path),
+    'checkpoint_epoch': checkpoint.get('epoch', '?'),
+    'num_test_normal':  len(MN),
+    'num_test_anomaly': len(MA),
+    'rho_FPR':          rho,
+    'AUC':              float(auc),
+    'F_measure':        float(Fmsr),
+    'Precision':        float(Prec),
+    'Recall':           float(Recl),
+    'TP':               float(TP),
+    'FP':               float(FP),
+    'FN':               float(FN),
+    'threshold_at_FPR': float(Thres[rho_index]),
+    'MN_stats': {
+        'min':  float(np.min(MN)),
+        'max':  float(np.max(MN)),
+        'mean': float(np.mean(MN)),
+        'std':  float(np.std(MN)),
+    },
+    'MA_stats': {
+        'min':  float(np.min(MA)),
+        'max':  float(np.max(MA)),
+        'mean': float(np.mean(MA)),
+        'std':  float(np.std(MA)),
+    },
+}
+
+summary_json_path = os.path.join(sav_dir, 'summary_metrics.json')
+with open(summary_json_path, 'w') as f:
+    json.dump(summary, f, indent=2, ensure_ascii=False)
+print(f'Summary metrics saved to: {summary_json_path}')
+
+# Also save ROC data (FPR, TPR arrays) for external plotting
+roc_data_path = os.path.join(sav_dir, 'roc_data.csv')
+np.savetxt(roc_data_path,
+           np.column_stack((np.linspace(0, 1, len(TPR)), TPR)),
+           delimiter=',', header='FPR,TPR', comments='')
+print(f'ROC data saved to: {roc_data_path}')
 
 
 # ══════════════════════════════════════════════════════════════════════════════
